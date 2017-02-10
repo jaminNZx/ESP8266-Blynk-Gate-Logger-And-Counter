@@ -15,9 +15,6 @@ WidgetBridge shelf(vPIN_BRIDGE_LED);
 WidgetBridge front_lights(vPIN_BRIDGE_FRONT_LIGHTS);
 WidgetRTC rtc;
 SimpleTimer timer;
-WidgetLCD lcd1(vPIN_GATE1_LCD);
-WidgetLCD lcd2(vPIN_GATE2_LCD);
-WidgetLCD lcd3(vPIN_BELL_LCD);
 
 int           DoorBellButtonCur;
 byte          DoorBellButtonPrev = HIGH;
@@ -147,25 +144,21 @@ void triggerGate1() {
     // LOG WHEN
     Gate1LastOpened = getCurrentDate() + String("   ") + getCurrentTime();
     Blynk.virtualWrite(vPIN_GATE1_LAST, Gate1LastOpened);
-    // START TIMER
-    timer.enable(timer2);
     // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
     base.virtualWrite(V1, HIGH);
     shelf.virtualWrite(V13, 1);
     if (hour() >= 21 || hour() <= 6) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
       front_lights.virtualWrite(V0, 1);
     }
-    // LCD
-    lcd1.clear(); //Use it to clear the LCD Widget
-    lcd1.print(3, 0, "FRONT GATE");
-    lcd1.print(6, 1, "OPEN");
+    // DAILY COUNTER
+    Gate1DailyCounter++;
+    Blynk.virtualWrite(vPIN_GATE1_COUNTER, Gate1DailyCounter);
+    // START TIMER
+    timer.enable(timer2);
     // TERMINAL
     printTimeDate();
     terminal.println("Gate Opened # Timer Started");
     terminal.flush();
-    // DAILY COUNTER
-    Gate1DailyCounter++;
-    Blynk.virtualWrite(vPIN_GATE1_COUNTER, Gate1DailyCounter);
   }
 
   Gate1SwitchMillisHeld = (millis() - Gate1SwitchFirstTime);
@@ -182,10 +175,6 @@ void triggerGate1() {
     printTimeDate();
     terminal.println(String("Gate Closed # Timer Stopped: ") + Gate1SwitchSecsHeld + String(" sec"));
     terminal.flush();
-    // LCD
-    lcd1.clear(); //Use it to clear the LCD Widget
-    lcd1.print(3, 0, "FRONT GATE");
-    lcd1.print(5, 1, "CLOSED");
   }
   Gate1SwitchPrev = Gate1SwitchCurrent;
 }
@@ -193,7 +182,7 @@ void triggerGate1() {
 void ActiveGate1Timer() {
   Blynk.virtualWrite(vPIN_GATE1_HELD, Gate1SwitchSecsHeld);
   if (Gate1SwitchSecsHeld == 60) {
-    Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", Gate1LastOpened + " // Front Gate has been left open longer than 60 seconds!");
+    //Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", Gate1LastOpened + " // Front Gate has been left open longer than 60 seconds!");
     //Blynk.sms("Alert! " + Gate1LastOpened + ": Gate has been left open longer than 60 seconds!");
     //Blynk.notify("Alert2, Gate1 has been left open longer than 60 seconds!");
   }
@@ -242,15 +231,6 @@ void setup() {
   terminal.println(F("Blynk v" BLYNK_VERSION ": Device started"));
   terminal.println("-------------");
   terminal.flush();
-  // LCD
-  lcd1.clear(); //Use it to clear the LCD Widget
-  lcd1.print(3, 0, "FRONT GATE"); // use: (position X: 0-15, position Y: 0-1, "Message you want to print")
-  lcd1.print(5, 1, "CLOSED"); // use: (position X: 0-15, position Y: 0-1, "Message you want to print")
-  lcd2.clear();
-  lcd2.print(3, 0, "BACK GATE");
-  lcd2.print(5, 1, "CLOSED");
-  lcd3.clear();
-  lcd3.print(3, 0, "DOOR BELL");
   /******** SYNC **************/
   Blynk.syncVirtual(vPIN_GATE1_COUNTER);
   Blynk.syncVirtual(vPIN_GATE2_COUNTER);

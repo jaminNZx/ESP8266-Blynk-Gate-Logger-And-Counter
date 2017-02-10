@@ -33,7 +33,6 @@
 /*
    Virtual Pins
 */
-#define vPIN_RTC                  V0
 #define vPIN_CUR_DATE             V1
 #define vPIN_TERMINAL             V2
 #define vPIN_GATE1_TABLE_CLR      V3
@@ -47,19 +46,16 @@
 #define vPIN_BRIDGE_BASE          V9
 #define vPIN_BRIDGE_FRONT_LIGHTS  V24
 // FRONT GATE
-#define vPIN_GATE1_LCD            V10
 #define vPIN_GATE1_LAST           V11
 #define vPIN_GATE1_HELD           V12
 #define vPIN_GATE1_COUNTER        V13
 #define vPIN_GATE1_TABLE          V14
 // BACK GATE
-#define vPIN_GATE2_LCD            V15
 #define vPIN_GATE2_LAST           V16
 #define vPIN_GATE2_HELD           V17
 #define vPIN_GATE2_COUNTER        V18
 #define vPIN_GATE2_TABLE          V19
 // BELL
-#define vPIN_BELL_LCD             V20
 #define vPIN_BELL_LAST            V21
 #define vPIN_BELL_COUNTER         V22
 #define vPIN_BELL_TABLE           V23
