@@ -16,25 +16,17 @@ WidgetBridge front_lights(vPIN_BRIDGE_FRONT_LIGHTS);
 WidgetRTC rtc;
 SimpleTimer timer;
 
-int           DoorBellButtonCur;
+int           DoorBellButtonCur, GateSwitchCurrent;
 byte          DoorBellButtonPrev = HIGH;
-int           GateSwitchCurrent;        // Current state of the button
-long          GateSwitchMillisHeld;     // How long the button was held (milliseconds)
-long          GateSwitchSecsHeld;       // How long the button was held (seconds)
+long          GateSwitchMillisHeld, GateSwitchSecsHeld, notifyDelay;
 byte          GateSwitchPrev = LOW;
 unsigned long GateSwitchFirstTime;       // how long since the button was first pressed
 String        extraZeroH, extraZeroM, extraZeroS;
-int           timer1, timer2, timer3;
+int           timer1, timer2;
 int           GateDailyCounter, BellDailyCounter;
 String        GateLastOpened, BellLastPressed;
-int           tableIndex1 = 0;
-int           tableIndex2 = 0;
+int           tableIndex1 = 0, tableIndex2 = 0;
 bool          resetCountersDone;
-int           notifyDelay;
-
-String getCurrentDate() {
-  return String(day()) + '-' + monthShortStr(month()) + '-' + year();
-}
 
 String getCurrentTime() {
   extraZeroH = "";
@@ -50,6 +42,21 @@ String getCurrentTime() {
     extraZeroS = '0';
   }
   return String(extraZeroH + hour()) + ':' + extraZeroM + minute() + ':' + extraZeroS + second();
+}
+
+String getCurrentDate() {
+  return String(day()) + '-' + monthShortStr(month()) + '-' + year();
+}
+
+void printOutput(String a) {
+  printTimeDate();
+  terminal.println(a);
+  terminal.flush();
+}
+
+void printTimeDate() {
+  terminal.println("-----------------------");
+  terminal.println( getCurrentDate() + String(" | ") + getCurrentTime() );
 }
 
 void sendUptime() {
@@ -69,19 +76,14 @@ BLYNK_WRITE(vPIN_BELL_COUNTER) {
 }
 BLYNK_WRITE(vPIN_GATE_TABLE_CLR) {
   Blynk.virtualWrite(vPIN_GATE_TABLE, "clr" );
-  terminal.println("Front Gate Table Cleared");
-  terminal.flush();
+  printOutput("Front Gate Table Cleared");
 }
 BLYNK_WRITE(vPIN_BELL_TABLE_CLR) {
   Blynk.virtualWrite(vPIN_BELL_TABLE, "clr" );
-  terminal.println("Bell Table Cleared");
-  terminal.flush();
+  printOutput("Bell Table Cleared");
 }
 
-void printTimeDate() {
-  terminal.println("-----------------------");
-  terminal.println( getCurrentDate() + String(" | ") + getCurrentTime() );
-}
+
 
 void triggerBell() {
   DoorBellButtonCur = digitalRead(PIN_DOORBELL);
@@ -104,8 +106,7 @@ void triggerBell() {
 
     // TERMINAL
     printTimeDate();
-    terminal.println("Door Bell Pressed");
-    terminal.flush();
+    printOutput("Door Bell Pressed");
 
     // DAILY COUNTER
     BellDailyCounter++;
@@ -147,9 +148,7 @@ void triggerGate() {
     // START TIMER
     timer.enable(timer2);
     // TERMINAL
-    printTimeDate();
-    terminal.println("Gate Opened # Timer Started");
-    terminal.flush();
+    printOutput("Gate Opened # Timer Started");
   }
 
   GateSwitchMillisHeld = (millis() - GateSwitchFirstTime);
@@ -163,9 +162,7 @@ void triggerGate() {
     Blynk.virtualWrite(vPIN_GATE_TABLE, "pick", tableIndex1 );
     tableIndex1++;
     // TERMINAL
-    printTimeDate();
-    terminal.println(String("Gate Closed # Timer Stopped: ") + GateSwitchSecsHeld + String(" sec"));
-    terminal.flush();
+    printOutput(String("Gate Closed # Timer Stopped: ") + GateSwitchSecsHeld + String(" sec"));
   }
   GateSwitchPrev = GateSwitchCurrent;
 }
@@ -179,8 +176,11 @@ void ActiveGateTimer() {
   }
 }
 
-BLYNK_WRITE(vPIN_NOTIFY_DELAY){
+BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
   notifyDelay = param.asInt() * 60;
+  if (!notifyDelay) {
+    notifyDelay = 99999999;
+  }
 }
 
 void resetDayCounters() {
@@ -212,7 +212,7 @@ void setup() {
   ArduinoOTA.begin();
   /*********** TIMERS & RTC *************/
   rtc.begin();
-  rtc.setSyncInterval(60);
+  setSyncInterval(60);
   timer1 = timer.setInterval(2000L, sendUptime);
   timer2 = timer.setInterval(1000L, ActiveGateTimer);
   timer.disable(timer2);
