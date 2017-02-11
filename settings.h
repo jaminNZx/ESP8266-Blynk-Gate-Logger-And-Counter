@@ -11,11 +11,6 @@
 #define AUTH_LIGHTS                 "8e8bf31a58d843e4bc9daaaa4e7abdfd"
 #define AUTH_FRONT_SWITCH           "b9af72dccede40e195093c149688c4fb"
 /*
-   Wifi Credentials
-*/
-#define WIFI_SSID                   "PrettyFlyForAWiFi"
-#define WIFI_PASS                   "custom2015"
-/*
    Over The Air Hostname
 */
 #define OTA_HOSTNAME                "GATE-FRONT"

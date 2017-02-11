@@ -8,6 +8,7 @@
 #include <TimeLib.h>
 #include <WidgetRTC.h>
 #include "settings.h"
+#include <wifi_credentials.h>
 
 WidgetTerminal terminal(vPIN_TERMINAL);
 WidgetBridge base(vPIN_BRIDGE_BASE);
@@ -178,7 +179,7 @@ void ActiveGateTimer() {
 
 BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
   notifyDelay = param.asInt() * 60;
-  if (!notifyDelay) {
+  if (!param.asInt()) {
     notifyDelay = 99999999;
   }
 }
