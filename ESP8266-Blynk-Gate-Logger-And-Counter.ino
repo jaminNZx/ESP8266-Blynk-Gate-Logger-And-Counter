@@ -18,20 +18,19 @@ SimpleTimer timer;
 
 int           DoorBellButtonCur;
 byte          DoorBellButtonPrev = HIGH;
-int           Gate1SwitchCurrent;        // Current state of the button
-long          Gate1SwitchMillisHeld;     // How long the button was held (milliseconds)
-long          Gate1SwitchSecsHeld;       // How long the button was held (seconds)
-byte          Gate1SwitchPrev = LOW;
-unsigned long Gate1SwitchFirstTime;       // how long since the button was first pressed
-unsigned long Gate1SwitchClosedTime;
+int           GateSwitchCurrent;        // Current state of the button
+long          GateSwitchMillisHeld;     // How long the button was held (milliseconds)
+long          GateSwitchSecsHeld;       // How long the button was held (seconds)
+byte          GateSwitchPrev = LOW;
+unsigned long GateSwitchFirstTime;       // how long since the button was first pressed
 String        extraZeroH, extraZeroM, extraZeroS;
 int           timer1, timer2, timer3;
-int           Gate1DailyCounter, Gate2DailyCounter, BellDailyCounter;
-String        Gate1LastOpened, Gate2LastOpened, BellLastPressed;
+int           GateDailyCounter, BellDailyCounter;
+String        GateLastOpened, BellLastPressed;
 int           tableIndex1 = 0;
 int           tableIndex2 = 0;
-int           tableIndex3 = 0;
 bool          resetCountersDone;
+int           notifyDelay;
 
 String getCurrentDate() {
   return String(day()) + '-' + monthShortStr(month()) + '-' + year();
@@ -62,23 +61,15 @@ BLYNK_CONNECTED() {
   shelf.setAuthToken(AUTH_LIGHTS); // Token for the Smart Shelf
   front_lights.setAuthToken(AUTH_FRONT_SWITCH); // Token for the Smart Shelf
 }
-BLYNK_WRITE(vPIN_GATE1_COUNTER) {
-  Gate1DailyCounter = param.asInt();
-}
-BLYNK_WRITE(vPIN_GATE2_COUNTER) {
-  Gate2DailyCounter = param.asInt();
+BLYNK_WRITE(vPIN_GATE_COUNTER) {
+  GateDailyCounter = param.asInt();
 }
 BLYNK_WRITE(vPIN_BELL_COUNTER) {
   BellDailyCounter = param.asInt();
 }
-BLYNK_WRITE(vPIN_GATE1_TABLE_CLR) {
-  Blynk.virtualWrite(vPIN_GATE1_TABLE, "clr" );
+BLYNK_WRITE(vPIN_GATE_TABLE_CLR) {
+  Blynk.virtualWrite(vPIN_GATE_TABLE, "clr" );
   terminal.println("Front Gate Table Cleared");
-  terminal.flush();
-}
-BLYNK_WRITE(vPIN_GATE2_TABLE_CLR) {
-  Blynk.virtualWrite(vPIN_GATE2_TABLE, "clr" );
-  terminal.println("Back Gate Table Cleared");
   terminal.flush();
 }
 BLYNK_WRITE(vPIN_BELL_TABLE_CLR) {
@@ -98,7 +89,7 @@ void triggerBell() {
     // BELL PRESSED
 
     // SEND TRIGGER TO RECORD CAMERA & CAPTURE JPEG SNAPSHOT
-    Blynk.virtualWrite(vPIN_WEBHOOK_FRONT, 1);
+    Blynk.virtualWrite(vPIN_WEBHOOK, 1);
 
     // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
     base.virtualWrite(V1, HIGH);
@@ -121,9 +112,9 @@ void triggerBell() {
     Blynk.virtualWrite(vPIN_BELL_COUNTER, BellDailyCounter);
 
     // TABLE
-    Blynk.virtualWrite(vPIN_BELL_TABLE, "add", tableIndex3, BellLastPressed, 1);
-    Blynk.virtualWrite(vPIN_BELL_TABLE, "pick", tableIndex3 );
-    tableIndex3++;
+    Blynk.virtualWrite(vPIN_BELL_TABLE, "add", tableIndex2, BellLastPressed, 1);
+    Blynk.virtualWrite(vPIN_BELL_TABLE, "pick", tableIndex2 );
+    tableIndex2++;
 
     DoorBellButtonPrev = DoorBellButtonCur;
     delay(10);
@@ -135,15 +126,15 @@ void triggerBell() {
   }
 }
 
-void triggerGate1() {
-  Gate1SwitchCurrent = digitalRead(PIN_GATE_SWITCH);
-  if (Gate1SwitchCurrent == HIGH && Gate1SwitchPrev == LOW) {
-    Gate1SwitchFirstTime = millis();
+void triggerGate() {
+  GateSwitchCurrent = digitalRead(PIN_GATE_SWITCH);
+  if (GateSwitchCurrent == HIGH && GateSwitchPrev == LOW) {
+    GateSwitchFirstTime = millis();
     // SEND TRIGGER TO RECORD CAMERA & CAPTURE JPEG SNAPSHOT
-    Blynk.virtualWrite(vPIN_WEBHOOK_FRONT, 1);
+    Blynk.virtualWrite(vPIN_WEBHOOK, 1);
     // LOG WHEN
-    Gate1LastOpened = getCurrentDate() + String("   ") + getCurrentTime();
-    Blynk.virtualWrite(vPIN_GATE1_LAST, Gate1LastOpened);
+    GateLastOpened = getCurrentDate() + String("   ") + getCurrentTime();
+    Blynk.virtualWrite(vPIN_GATE_LAST, GateLastOpened);
     // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
     base.virtualWrite(V1, HIGH);
     shelf.virtualWrite(V13, 1);
@@ -151,8 +142,8 @@ void triggerGate1() {
       front_lights.virtualWrite(V0, 1);
     }
     // DAILY COUNTER
-    Gate1DailyCounter++;
-    Blynk.virtualWrite(vPIN_GATE1_COUNTER, Gate1DailyCounter);
+    GateDailyCounter++;
+    Blynk.virtualWrite(vPIN_GATE_COUNTER, GateDailyCounter);
     // START TIMER
     timer.enable(timer2);
     // TERMINAL
@@ -161,41 +152,43 @@ void triggerGate1() {
     terminal.flush();
   }
 
-  Gate1SwitchMillisHeld = (millis() - Gate1SwitchFirstTime);
-  Gate1SwitchSecsHeld = Gate1SwitchMillisHeld / 1000;
+  GateSwitchMillisHeld = (millis() - GateSwitchFirstTime);
+  GateSwitchSecsHeld = GateSwitchMillisHeld / 1000;
 
-  if (Gate1SwitchCurrent == LOW && Gate1SwitchPrev == HIGH) {
+  if (GateSwitchCurrent == LOW && GateSwitchPrev == HIGH) {
     // STOP ACTIVE GATE TIMER
     timer.disable(timer2);
     // TABLE
-    Blynk.virtualWrite(vPIN_GATE1_TABLE, "add", tableIndex1, Gate1LastOpened, Gate1SwitchSecsHeld + String(" sec") );
-    Blynk.virtualWrite(vPIN_GATE1_TABLE, "pick", tableIndex1 );
+    Blynk.virtualWrite(vPIN_GATE_TABLE, "add", tableIndex1, GateLastOpened, GateSwitchSecsHeld + String(" sec") );
+    Blynk.virtualWrite(vPIN_GATE_TABLE, "pick", tableIndex1 );
     tableIndex1++;
     // TERMINAL
     printTimeDate();
-    terminal.println(String("Gate Closed # Timer Stopped: ") + Gate1SwitchSecsHeld + String(" sec"));
+    terminal.println(String("Gate Closed # Timer Stopped: ") + GateSwitchSecsHeld + String(" sec"));
     terminal.flush();
   }
-  Gate1SwitchPrev = Gate1SwitchCurrent;
+  GateSwitchPrev = GateSwitchCurrent;
 }
 
-void ActiveGate1Timer() {
-  Blynk.virtualWrite(vPIN_GATE1_HELD, Gate1SwitchSecsHeld);
-  if (Gate1SwitchSecsHeld == 60) {
-    //Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", Gate1LastOpened + " // Front Gate has been left open longer than 60 seconds!");
+void ActiveGateTimer() {
+  Blynk.virtualWrite(vPIN_GATE_HELD, GateSwitchSecsHeld);
+  if (GateSwitchSecsHeld >= notifyDelay) {
+    Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", GateLastOpened + " // Front Gate has been left open longer than 60 seconds!");
     //Blynk.sms("Alert! " + Gate1LastOpened + ": Gate has been left open longer than 60 seconds!");
     //Blynk.notify("Alert2, Gate1 has been left open longer than 60 seconds!");
   }
 }
 
+BLYNK_WRITE(vPIN_NOTIFY_DELAY){
+  notifyDelay = param.asInt() * 60;
+}
+
 void resetDayCounters() {
   if ( (hour() == 0) && (minute() == 0) && (second() == 0) ) {
     if (!resetCountersDone) {
-      Gate1DailyCounter = 0;
-      Gate2DailyCounter = 0;
+      GateDailyCounter = 0;
       BellDailyCounter = 0;
-      Blynk.virtualWrite(vPIN_GATE1_COUNTER, 0);
-      Blynk.virtualWrite(vPIN_GATE2_COUNTER, 0);
+      Blynk.virtualWrite(vPIN_GATE_COUNTER, 0);
       Blynk.virtualWrite(vPIN_BELL_COUNTER, 0);
       resetCountersDone = 1;
     }
@@ -219,8 +212,9 @@ void setup() {
   ArduinoOTA.begin();
   /*********** TIMERS & RTC *************/
   rtc.begin();
+  rtc.setSyncInterval(60);
   timer1 = timer.setInterval(2000L, sendUptime);
-  timer2 = timer.setInterval(1000L, ActiveGate1Timer);
+  timer2 = timer.setInterval(1000L, ActiveGateTimer);
   timer.disable(timer2);
   /******** pinModes **************/
   pinMode(PIN_DOORBELL, INPUT_PULLUP);
@@ -232,8 +226,7 @@ void setup() {
   terminal.println("-------------");
   terminal.flush();
   /******** SYNC **************/
-  Blynk.syncVirtual(vPIN_GATE1_COUNTER);
-  Blynk.syncVirtual(vPIN_GATE2_COUNTER);
+  Blynk.syncVirtual(vPIN_GATE_COUNTER);
   Blynk.syncVirtual(vPIN_BELL_COUNTER);
 }
 
@@ -242,7 +235,7 @@ void loop() {
   ArduinoOTA.handle();
   timer.run();
   triggerBell();
-  triggerGate1();
+  triggerGate();
   resetDayCounters();
 }
 /**************************************************************************************************************************/
