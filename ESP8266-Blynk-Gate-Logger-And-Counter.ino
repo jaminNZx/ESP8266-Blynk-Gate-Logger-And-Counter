@@ -189,6 +189,7 @@ BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
   }
 }
 
+BLYNK_WRITE(vPIN_SILENTMODE) {
   switch (param.asInt()) {
     case 0:
       silentBell = 0;
@@ -259,7 +260,7 @@ void setup() {
   Blynk.syncVirtual(vPIN_GATE_COUNTER);
   Blynk.syncVirtual(vPIN_BELL_COUNTER);
   Blynk.syncVirtual(vPIN_NOTIFY_DELAY);
-  Blynk.syncVirtual(vPIN_SILENTMODE_BELL);
+  Blynk.syncVirtual(vPIN_SILENTMODE);
 }
 
 void loop() {
