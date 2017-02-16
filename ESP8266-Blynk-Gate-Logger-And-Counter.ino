@@ -12,7 +12,7 @@
 
 WidgetTerminal terminal(vPIN_TERMINAL);
 WidgetBridge base(vPIN_BRIDGE_BASE);
-WidgetBridge shelf(vPIN_BRIDGE_LED);
+WidgetBridge leds(vPIN_BRIDGE_LED);
 WidgetBridge front_lights(vPIN_BRIDGE_FRONT_LIGHTS);
 WidgetRTC rtc;
 SimpleTimer timer;
@@ -26,7 +26,7 @@ String        extraZeroH, extraZeroM, extraZeroS;
 int           timer1, timer2;
 int           GateDailyCounter, BellDailyCounter;
 String        GateLastOpened, BellLastPressed;
-int           tableIndex1 = 0, tableIndex2 = 0;
+int           tableIndex1 = 0, tableIndex2 = 0, silentBell, silentGate;
 bool          resetCountersDone;
 
 String getCurrentTime() {
@@ -66,7 +66,7 @@ void sendUptime() {
 
 BLYNK_CONNECTED() {
   base.setAuthToken(AUTH_BASE); // Token for the Base Stations
-  shelf.setAuthToken(AUTH_LIGHTS); // Token for the Smart Shelf
+  leds.setAuthToken(AUTH_LIGHTS); // Token for the Home LED System
   front_lights.setAuthToken(AUTH_FRONT_SWITCH); // Token for the Smart Shelf
 }
 BLYNK_WRITE(vPIN_GATE_COUNTER) {
@@ -94,13 +94,14 @@ void triggerBell() {
     // SEND TRIGGER TO RECORD CAMERA & CAPTURE JPEG SNAPSHOT
     Blynk.virtualWrite(vPIN_WEBHOOK, 1);
 
-    // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
-    base.virtualWrite(V1, HIGH);
-    shelf.virtualWrite(V13, 1);
+    if (!silentBell) {
+      // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
+      base.virtualWrite(V1, HIGH);
+      leds.virtualWrite(V13, 2);
+    }
     if (hour() >= 21 || hour() <= 6) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
       front_lights.virtualWrite(V0, 1);
     }
-
     // LOG WHEN
     BellLastPressed = getCurrentDate() + String("   ") + getCurrentTime();
     Blynk.virtualWrite(vPIN_BELL_LAST, BellLastPressed);
@@ -137,11 +138,14 @@ void triggerGate() {
     // LOG WHEN
     GateLastOpened = getCurrentDate() + String("   ") + getCurrentTime();
     Blynk.virtualWrite(vPIN_GATE_LAST, GateLastOpened);
-    // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
-    base.virtualWrite(V1, HIGH);
-    shelf.virtualWrite(V13, 1);
-    if (hour() >= 21 || hour() <= 6) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
-      front_lights.virtualWrite(V0, 1);
+
+    if (!silentGate) {
+      // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
+      base.virtualWrite(V1, HIGH);
+      leds.virtualWrite(V13, 1);
+      if (hour() >= 21 || hour() <= 6) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
+        front_lights.virtualWrite(V0, 1);
+      }
     }
     // DAILY COUNTER
     GateDailyCounter++;
@@ -171,7 +175,7 @@ void triggerGate() {
 void ActiveGateTimer() {
   Blynk.virtualWrite(vPIN_GATE_HELD, GateSwitchSecsHeld);
   if (GateSwitchSecsHeld >= notifyDelay) {
-    Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", GateLastOpened + " // Front Gate has been left open longer than 60 seconds!");
+    Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", GateLastOpened + " // Front Gate has been left open!");
     //Blynk.sms("Alert! " + Gate1LastOpened + ": Gate has been left open longer than 60 seconds!");
     //Blynk.notify("Alert2, Gate1 has been left open longer than 60 seconds!");
   }
@@ -179,8 +183,33 @@ void ActiveGateTimer() {
 
 BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
   notifyDelay = param.asInt() * 60;
-  if (!param.asInt()) {
-    notifyDelay = 99999999;
+  printOutput(String("Notify Delay: ") + String(param.asInt()) + String(" min"));
+  if (!notifyDelay) {
+    notifyDelay = 9999999999999999;
+  }
+}
+
+  switch (param.asInt()) {
+    case 0:
+      silentBell = 0;
+      silentGate = 0;
+      printOutput("Slient Mode Inactive");
+      break;
+    case 1:
+      silentBell = 1;
+      silentGate = 0;
+      printOutput("Slient Mode: Bell Only");
+      break;
+    case 2:
+      silentBell = 0;
+      silentGate = 1;
+      printOutput("Slient Mode: Gate Only");
+      break;
+    case 3:
+      silentBell = 1;
+      silentGate = 1;
+      printOutput("Slient Mode: Bell & Gate");
+      break;
   }
 }
 
@@ -229,6 +258,8 @@ void setup() {
   /******** SYNC **************/
   Blynk.syncVirtual(vPIN_GATE_COUNTER);
   Blynk.syncVirtual(vPIN_BELL_COUNTER);
+  Blynk.syncVirtual(vPIN_NOTIFY_DELAY);
+  Blynk.syncVirtual(vPIN_SILENTMODE_BELL);
 }
 
 void loop() {

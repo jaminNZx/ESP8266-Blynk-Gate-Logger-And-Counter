@@ -50,6 +50,8 @@
 #define vPIN_BELL_LAST              V13
 #define vPIN_BELL_COUNTER           V14
 #define vPIN_BELL_TABLE             V15
+
+#define vPIN_SILENTMODE_BELL        V16
 /*
 
 */
