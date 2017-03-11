@@ -17,13 +17,13 @@ WidgetBridge front_lights(vPIN_BRIDGE_FRONT_LIGHTS);
 WidgetRTC rtc;
 SimpleTimer timer;
 
-int           DoorBellButtonCur, GateSwitchCurrent;
+int           DoorBellButtonCur, GateSwitchCurrent, notificationSent;
 byte          DoorBellButtonPrev = HIGH;
 long          GateSwitchMillisHeld, GateSwitchSecsHeld, notifyDelay;
 byte          GateSwitchPrev = LOW;
 unsigned long GateSwitchFirstTime;       // how long since the button was first pressed
 String        extraZeroH, extraZeroM, extraZeroS;
-int           timer1, timer2;
+int           timer1, timer2, timer3, timer4;
 int           GateDailyCounter, BellDailyCounter;
 String        GateLastOpened, BellLastPressed;
 int           tableIndex1 = 0, tableIndex2 = 0, silentBell, silentGate;
@@ -44,7 +44,6 @@ String getCurrentTime() {
   }
   return String(extraZeroH + hour()) + ':' + extraZeroM + minute() + ':' + extraZeroS + second();
 }
-
 String getCurrentDate() {
   return String(day()) + '-' + monthShortStr(month()) + '-' + year();
 }
@@ -54,14 +53,13 @@ void printOutput(String a) {
   terminal.println(a);
   terminal.flush();
 }
-
 void printTimeDate() {
   terminal.println("-----------------------");
   terminal.println( getCurrentDate() + String(" | ") + getCurrentTime() );
 }
-
 void sendUptime() {
-  Blynk.virtualWrite(vPIN_CUR_DATE,  getCurrentDate() + String("  ") + getCurrentTime() + String("  Wifi: ") + map(WiFi.RSSI(), -105, -40, 0, 100) + String('%') );
+  Blynk.virtualWrite(vPIN_CUR_DATE,  getCurrentDate() + String("  ") + getCurrentTime() );
+  Blynk.setProperty(vPIN_CUR_DATE, "label", String("WIFI ") + map(WiFi.RSSI(), -105, -40, 0, 100) + String('%'));
 }
 
 BLYNK_CONNECTED() {
@@ -83,8 +81,6 @@ BLYNK_WRITE(vPIN_BELL_TABLE_CLR) {
   Blynk.virtualWrite(vPIN_BELL_TABLE, "clr" );
   printOutput("Bell Table Cleared");
 }
-
-
 
 void triggerBell() {
   DoorBellButtonCur = digitalRead(PIN_DOORBELL);
@@ -162,6 +158,7 @@ void triggerGate() {
   if (GateSwitchCurrent == LOW && GateSwitchPrev == HIGH) {
     // STOP ACTIVE GATE TIMER
     timer.disable(timer2);
+    notificationSent = 0;
     // TABLE
     Blynk.virtualWrite(vPIN_GATE_TABLE, "add", tableIndex1, GateLastOpened, GateSwitchSecsHeld + String(" sec") );
     Blynk.virtualWrite(vPIN_GATE_TABLE, "pick", tableIndex1 );
@@ -174,11 +171,20 @@ void triggerGate() {
 
 void ActiveGateTimer() {
   Blynk.virtualWrite(vPIN_GATE_HELD, GateSwitchSecsHeld);
-  if (GateSwitchSecsHeld >= notifyDelay) {
-    Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", GateLastOpened + " // Front Gate has been left open!");
-    //Blynk.sms("Alert! " + Gate1LastOpened + ": Gate has been left open longer than 60 seconds!");
-    //Blynk.notify("Alert2, Gate1 has been left open longer than 60 seconds!");
+  if (GateSwitchSecsHeld >= notifyDelay && !notificationSent) {
+    Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", GateLastOpened + String(" // Front Gate has been left open for ") + GateSwitchSecsHeld + String(" secs"));
+    printOutput(String("Notified # Gate Held: ") + GateSwitchSecsHeld + String(" sec"));
+    notificationSent = 1;
+    timer3 = timer.setTimeout(((notifyDelay * 1000) - 50),resetNotification);
+       
+    //Blynk.sms("Alert! " + GateLastOpened + String(" // Front Gate has been left open for ") + GateSwitchSecsHeld + String(" secs");
+    //Blynk.notify("NOTIFY: Alert, Front Gate has been left open!");
   }
+}
+
+void resetNotification() {
+  notificationSent = 0;
+  printOutput("Notified # Reset Flag");
 }
 
 BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
