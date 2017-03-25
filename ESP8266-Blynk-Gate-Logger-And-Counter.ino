@@ -27,7 +27,7 @@ int           timer1, timer2, timer3, timer4;
 int           GateDailyCounter, BellDailyCounter;
 String        GateLastOpened, BellLastPressed;
 int           tableIndex1 = 0, tableIndex2 = 0, silentBell, silentGate;
-bool          resetCountersDone;
+bool          resetCountersDone, nightTime;
 
 String getCurrentTime() {
   extraZeroH = "";
@@ -95,7 +95,7 @@ void triggerBell() {
       base.virtualWrite(V1, HIGH);
       leds.virtualWrite(V13, 2);
     }
-    if (hour() >= 21 || hour() <= 6) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
+    if (nightTime) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
       front_lights.virtualWrite(V0, 1);
     }
     // LOG WHEN
@@ -140,7 +140,7 @@ void triggerGate() {
       // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
       base.virtualWrite(V1, HIGH);
       leds.virtualWrite(V13, 1);
-      if (hour() >= 21 || hour() <= 6) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
+      if (nightTime) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
         front_lights.virtualWrite(V0, 1);
       }
     }
@@ -223,6 +223,10 @@ BLYNK_WRITE(vPIN_SILENTMODE) {
   }
 }
 
+BLYNK_WRITE(vPIN_NIGHTTIME) {
+  nightTime = param.asInt();
+}
+
 void resetDayCounters() {
   if ( (hour() == 0) && (minute() == 0) && (second() == 0) ) {
     if (!resetCountersDone) {
@@ -241,8 +245,8 @@ void resetDayCounters() {
 void setup() {
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
-#if defined(USE_LOCAL_SERVER)
-  Blynk.begin(AUTH, WIFI_SSID, WIFI_PASS, SERVER);
+#ifdef LOCAL_SERVER
+  Blynk.begin(AUTH, WIFI_SSID, WIFI_PASS, LOCAL_SERVER);
 #else
   Blynk.begin(AUTH, WIFI_SSID, WIFI_PASS);
 #endif
@@ -259,7 +263,7 @@ void setup() {
   /******** pinModes **************/
   pinMode(PIN_DOORBELL, INPUT_PULLUP);
   pinMode(PIN_GATE_SWITCH, INPUT_PULLUP);
-  pinMode(PIN_LED, OUTPUT);   // DoorBell Led Pin set as output
+  pinMode(PIN_LED, OUTPUT);
   /******** READY **************/
   terminal.println(F("Blynk v" BLYNK_VERSION ": Device started"));
   terminal.println("-------------");
@@ -269,6 +273,7 @@ void setup() {
   Blynk.syncVirtual(vPIN_BELL_COUNTER);
   Blynk.syncVirtual(vPIN_NOTIFY_DELAY);
   Blynk.syncVirtual(vPIN_SILENTMODE);
+  Blynk.syncVirtual(vPIN_NIGHTTIME);
 }
 
 void loop() {

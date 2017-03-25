@@ -17,8 +17,7 @@
 /*
    Local Server Settings (uncomment to use local server)
 */
-#define USE_LOCAL_SERVER
-#define SERVER                      IPAddress(192, 168, 1, 2)
+#define LOCAL_SERVER                IPAddress(192, 168, 1, 2)
 /*
    Hardware Pins
 */
@@ -52,6 +51,8 @@
 #define vPIN_BELL_TABLE             V15
 
 #define vPIN_SILENTMODE             V16
+
+#define vPIN_NIGHTTIME              V17
 /*
 
 */
