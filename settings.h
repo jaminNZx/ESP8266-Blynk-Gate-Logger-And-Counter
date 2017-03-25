@@ -22,9 +22,9 @@
 /*
    Hardware Pins
 */
-#define PIN_DOORBELL                5  // YELLOW
-#define PIN_GATE_SWITCH             14 // ORANGE
-#define PIN_LED                     4  // RED
+#define PIN_DOORBELL                12 
+#define PIN_GATE_SWITCH             13
+#define PIN_LED                     14 
 /*
    Virtual Pins
 */

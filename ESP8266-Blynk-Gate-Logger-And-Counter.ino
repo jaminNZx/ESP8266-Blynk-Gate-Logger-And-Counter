@@ -134,7 +134,8 @@ void triggerGate() {
     // LOG WHEN
     GateLastOpened = getCurrentDate() + String("   ") + getCurrentTime();
     Blynk.virtualWrite(vPIN_GATE_LAST, GateLastOpened);
-
+    // INDICATOR LED 
+    digitalWrite(PIN_LED, HIGH); 
     if (!silentGate) {
       // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
       base.virtualWrite(V1, HIGH);
@@ -156,6 +157,8 @@ void triggerGate() {
   GateSwitchSecsHeld = GateSwitchMillisHeld / 1000;
 
   if (GateSwitchCurrent == LOW && GateSwitchPrev == HIGH) {
+    // INDICATOR LED 
+    digitalWrite(PIN_LED, LOW); 
     // STOP ACTIVE GATE TIMER
     timer.disable(timer2);
     notificationSent = 0;
@@ -257,7 +260,6 @@ void setup() {
   pinMode(PIN_DOORBELL, INPUT_PULLUP);
   pinMode(PIN_GATE_SWITCH, INPUT_PULLUP);
   pinMode(PIN_LED, OUTPUT);   // DoorBell Led Pin set as output
-  digitalWrite(PIN_LED, HIGH); // DoorBell Led Always On At Startup
   /******** READY **************/
   terminal.println(F("Blynk v" BLYNK_VERSION ": Device started"));
   terminal.println("-------------");
