@@ -59,7 +59,7 @@ void printTimeDate() {
 }
 void sendUptime() {
   Blynk.virtualWrite(vPIN_CUR_DATE,  getCurrentDate() + String("  ") + getCurrentTime() );
-  Blynk.setProperty(vPIN_CUR_DATE, "label", String("WIFI ") + map(WiFi.RSSI(), -105, -40, 0, 100) + String('%'));
+  Blynk.setProperty(vPIN_CUR_DATE, "label", String("WIFI: ") + String(map(WiFi.RSSI(), -105, -40, 0, 100)) + String("% (") + WiFi.RSSI() + String("dB)") + String(" IP: ") + WiFi.localIP().toString());
 }
 
 BLYNK_CONNECTED() {
@@ -134,15 +134,15 @@ void triggerGate() {
     // LOG WHEN
     GateLastOpened = getCurrentDate() + String("   ") + getCurrentTime();
     Blynk.virtualWrite(vPIN_GATE_LAST, GateLastOpened);
-    // INDICATOR LED 
-    digitalWrite(PIN_LED, HIGH); 
+    // INDICATOR LED
+    digitalWrite(PIN_LED, HIGH);
     if (!silentGate) {
       // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
       base.virtualWrite(V1, HIGH);
       leds.virtualWrite(V13, 1);
-      if (nightTime) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
-        front_lights.virtualWrite(V0, 1);
-      }
+    }
+    if (nightTime) { // ONLY TRIGGER FRONT PATH LIGHTS BETWEEN 9pm-6am
+      front_lights.virtualWrite(V0, 1);
     }
     // DAILY COUNTER
     GateDailyCounter++;
@@ -157,8 +157,8 @@ void triggerGate() {
   GateSwitchSecsHeld = GateSwitchMillisHeld / 1000;
 
   if (GateSwitchCurrent == LOW && GateSwitchPrev == HIGH) {
-    // INDICATOR LED 
-    digitalWrite(PIN_LED, LOW); 
+    // INDICATOR LED
+    digitalWrite(PIN_LED, LOW);
     // STOP ACTIVE GATE TIMER
     timer.disable(timer2);
     notificationSent = 0;
@@ -178,8 +178,8 @@ void ActiveGateTimer() {
     Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", GateLastOpened + String(" // Front Gate has been left open for ") + GateSwitchSecsHeld + String(" secs"));
     printOutput(String("Notified # Gate Held: ") + GateSwitchSecsHeld + String(" sec"));
     notificationSent = 1;
-    timer3 = timer.setTimeout(((notifyDelay * 1000) - 50),resetNotification);
-       
+    timer3 = timer.setTimeout(((notifyDelay * 1000) - 50), resetNotification);
+
     //Blynk.sms("Alert! " + GateLastOpened + String(" // Front Gate has been left open for ") + GateSwitchSecsHeld + String(" secs");
     //Blynk.notify("NOTIFY: Alert, Front Gate has been left open!");
   }
@@ -225,7 +225,19 @@ BLYNK_WRITE(vPIN_SILENTMODE) {
 
 BLYNK_WRITE(vPIN_NIGHTTIME) {
   nightTime = param.asInt();
+  if (nightTime) {
+    Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 255);
+    printOutput("Night Mode Active");
+    timer.setTimeout(36000000L, nightTime_END); // 10 HR DELAY TO DISACTIVATE
+  }
 }
+
+void nightTime_END() {
+  nightTime = 0;
+  Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 0);
+  printOutput("Night Mode Inactive");
+}
+
 
 void resetDayCounters() {
   if ( (hour() == 0) && (minute() == 0) && (second() == 0) ) {
@@ -239,6 +251,14 @@ void resetDayCounters() {
   }
   if ( (hour() == 0) && (minute() == 0) && (second() == 1) ) {
     resetCountersDone = 0;
+  }
+}
+
+void normalSync() {
+  if (year() != 1970) {
+    setSyncInterval(300);
+    printOutput("Sync'd RTC - Interval: 5min");
+    timer.disable(timer3);
   }
 }
 
@@ -256,10 +276,11 @@ void setup() {
   ArduinoOTA.begin();
   /*********** TIMERS & RTC *************/
   rtc.begin();
-  setSyncInterval(60);
-  timer1 = timer.setInterval(2000L, sendUptime);
-  timer2 = timer.setInterval(1000L, ActiveGateTimer);
+  setSyncInterval(5);
+  timer1 = timer.setInterval(2000, sendUptime);
+  timer2 = timer.setInterval(1000, ActiveGateTimer);
   timer.disable(timer2);
+  timer3 = timer.setInterval(1000, normalSync);
   /******** pinModes **************/
   pinMode(PIN_DOORBELL, INPUT_PULLUP);
   pinMode(PIN_GATE_SWITCH, INPUT_PULLUP);

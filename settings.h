@@ -53,6 +53,7 @@
 #define vPIN_SILENTMODE             V16
 
 #define vPIN_NIGHTTIME              V17
+#define vPIN_NIGHTTIME_LED          V18
 /*
 
 */
