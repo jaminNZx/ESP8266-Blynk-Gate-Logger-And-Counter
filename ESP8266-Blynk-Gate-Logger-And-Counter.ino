@@ -27,7 +27,7 @@ int           timer1, timer2, timer3, timer4;
 int           GateDailyCounter, BellDailyCounter;
 String        GateLastOpened, BellLastPressed;
 int           tableIndex1 = 0, tableIndex2 = 0, silentBell, silentGate;
-bool          resetCountersDone, nightTime;
+bool          resetCountersDone, nightTime = 0;
 
 String getCurrentTime() {
   extraZeroH = "";
@@ -174,7 +174,7 @@ void triggerGate() {
 
 void ActiveGateTimer() {
   Blynk.virtualWrite(vPIN_GATE_HELD, GateSwitchSecsHeld);
-  if (GateSwitchSecsHeld >= notifyDelay && !notificationSent) {
+  if (notifyDelay && GateSwitchSecsHeld > 0 && GateSwitchSecsHeld > notifyDelay && !notificationSent) {
     Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", GateLastOpened + String(" // Front Gate has been left open for ") + GateSwitchSecsHeld + String(" secs"));
     printOutput(String("Notified # Gate Held: ") + GateSwitchSecsHeld + String(" sec"));
     notificationSent = 1;
@@ -192,9 +192,10 @@ void resetNotification() {
 
 BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
   notifyDelay = param.asInt() * 60;
-  printOutput(String("Notify Delay: ") + String(param.asInt()) + String(" min"));
-  if (!notifyDelay) {
-    notifyDelay = 9999999999999999;
+  if(notifyDelay){
+    printOutput(String("Notify Delay: ") + String(param.asInt()) + String(" min"));
+  } else {
+    printOutput(String("Notify Disabled "));
   }
 }
 
@@ -228,7 +229,12 @@ BLYNK_WRITE(vPIN_NIGHTTIME) {
   if (nightTime) {
     Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 255);
     printOutput("Night Mode Active");
-    timer.setTimeout(36000000L, nightTime_END); // 10 HR DELAY TO DISACTIVATE
+    timer4 = timer.setTimeout(36000000L, nightTime_END); // 10 HR DELAY TO DISACTIVATE
+  } else {
+    nightTime = 0;
+    Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 0);
+    printOutput("Night Mode Inactive (Manual)");
+    timer.disable(timer4);
   }
 }
 
