@@ -3,7 +3,7 @@
                      BLYNK_WRITE
 
  **************************************************************/
- BLYNK_CONNECTED() {
+BLYNK_CONNECTED() {
   base.setAuthToken(AUTH_BASE); // Token for the Base Stations
   leds.setAuthToken(AUTH_LIGHTS); // Token for the Home LED System
   front_lights.setAuthToken(AUTH_FRONT_SWITCH); // Token for the Smart Shelf
@@ -30,7 +30,7 @@ BLYNK_WRITE(vPIN_BELL_TABLE_CLR) {
 
 BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
   notifyDelay = param.asInt() * 60;
-  if(notifyDelay){
+  if (notifyDelay) {
     printOutput(String("Notify Delay: ") + String(param.asInt()) + String(" min"));
   } else {
     printOutput(String("Notify Disabled "));

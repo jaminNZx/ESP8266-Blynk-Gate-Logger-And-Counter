@@ -3,7 +3,7 @@
                        General Functions
 
  **************************************************************/
- /*
+/*
   getCurrentTime() - returns the current time as String 11:59:59
 */
 String getCurrentTime() {
@@ -107,8 +107,11 @@ void resetDayCounters() {
   }
 }
 /*
-  normalSync() - A first time boot function to sync time quickly, set the correct
-  'today' var and also sync the counters from the widget data 
+  bootUp() - A busy little run once boot function to:
+    - sync time quickly
+    - set the correct 'today' var 
+    - sync the counters from the widget data
+    - start the daily reset timer
 */
 void bootUp() {
   if (year() != 1970) {
