@@ -29,7 +29,7 @@ void setup() {
   ArduinoOTA.begin();
   /*********** TIMERS & RTC *************/
   rtc.begin();
-  setSyncInterval(5);
+  setSyncInterval(1);
   timer1 = timer.setInterval(2000, sendUptime);
   timer2 = timer.setInterval(1000, ActiveGateTimer);
   timer.disable(timer2);
