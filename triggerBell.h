@@ -23,7 +23,6 @@
     Blynk.virtualWrite(vPIN_BELL_LAST, BellLastPressed);
 
     // TERMINAL
-    printTimeDate();
     printOutput("Door Bell Pressed");
 
     // DAILY COUNTER
