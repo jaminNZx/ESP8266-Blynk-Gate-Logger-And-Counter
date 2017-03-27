@@ -121,6 +121,7 @@ void bootUp() {
     setSyncInterval(300);
     printOutput("Sync'd RTC - Interval: 5min");
     timer.disable(timer3);
+    timer.setInterval(15 * 60 * 1000, resetDayCounters);
   }
 }
 /*
