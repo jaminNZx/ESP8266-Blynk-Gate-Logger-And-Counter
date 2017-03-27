@@ -20,3 +20,4 @@ int           GateDailyCounter, BellDailyCounter;
 String        GateLastOpened, BellLastPressed;
 int           tableIndex1 = 0, tableIndex2 = 0, silentBell, silentGate;
 int           today, nightTime = 0;
+int           nightTime_offTime = 7; // 7am turn off nightMode

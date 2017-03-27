@@ -67,9 +67,9 @@ BLYNK_WRITE(vPIN_NIGHTTIME) {
   if (nightTime) {
     Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 255);
     printOutput("Night Mode Active");
-    timer4 = timer.setTimeout(36000000L, nightTime_END); // 10 HR DELAY TO DISACTIVATE
+    long nightTimeTimeout = (nightTime_offTime - hour()) * 60 * 60 * 1000; // work out the hours until set time
+    timer4 = timer.setTimeout(nightTimeTimeout, nightTime_END); // then set a timer
   } else {
-    nightTime = 0;
     Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 0);
     printOutput("Night Mode Inactive (Manual)");
     timer.disable(timer4);
