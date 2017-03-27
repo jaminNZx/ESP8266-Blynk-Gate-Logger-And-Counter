@@ -16,12 +16,16 @@ BLYNK_WRITE(vPIN_BELL_COUNTER) {
   BellDailyCounter = param.asInt();
 }
 BLYNK_WRITE(vPIN_GATE_TABLE_CLR) {
-  Blynk.virtualWrite(vPIN_GATE_TABLE, "clr" );
-  printOutput("Front Gate Table Cleared");
+  if (param.asInt()) {
+    Blynk.virtualWrite(vPIN_GATE_TABLE, "clr" );
+    printOutput("Front Gate Table Cleared");
+  }
 }
 BLYNK_WRITE(vPIN_BELL_TABLE_CLR) {
-  Blynk.virtualWrite(vPIN_BELL_TABLE, "clr" );
-  printOutput("Bell Table Cleared");
+  if (param.asInt()) {
+    Blynk.virtualWrite(vPIN_BELL_TABLE, "clr" );
+    printOutput("Bell Table Cleared");
+  }
 }
 
 BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
