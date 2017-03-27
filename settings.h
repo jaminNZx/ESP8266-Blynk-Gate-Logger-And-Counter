@@ -4,6 +4,12 @@
 
  **************************************************************/
 /*
+     WIFI Credentials. Either use a static library, or enter the details below.
+*/
+ #include <wifi_credentials.h>
+ //#define WIFI_SSID                  "xxxxxxxxxxxx"
+ //#define WIFI_PASS                  "xxxxxxxxxxxx"
+/*
      Blynk Auth Code
 */
 #define AUTH                        "ae5eab51641343209ae3c2b139ef6e0b"
