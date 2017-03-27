@@ -110,7 +110,7 @@ void resetDayCounters() {
   normalSync() - A first time boot function to sync time quickly, set the correct
   'today' var and also sync the counters from the widget data 
 */
-void normalSync() {
+void bootUp() {
   if (year() != 1970) {
     today = day();
     Blynk.syncVirtual(vPIN_GATE_COUNTER);

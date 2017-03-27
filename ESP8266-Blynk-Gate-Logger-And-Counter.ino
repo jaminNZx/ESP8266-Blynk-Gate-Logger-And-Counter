@@ -33,7 +33,7 @@ void setup() {
   timer1 = timer.setInterval(2000, sendUptime);
   timer2 = timer.setInterval(1000, ActiveGateTimer);
   timer.disable(timer2);
-  timer3 = timer.setInterval(1000, normalSync);
+  timer3 = timer.setInterval(1000, bootUp);
   /******** pinModes **************/
   pinMode(PIN_DOORBELL, INPUT_PULLUP);
   pinMode(PIN_GATE_SWITCH, INPUT_PULLUP);
