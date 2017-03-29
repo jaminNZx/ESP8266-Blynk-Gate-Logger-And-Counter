@@ -27,7 +27,7 @@
     // START TIMER
     timer.enable(timer2);
     // TERMINAL
-    printOutput("Gate Opened # Timing");
+    printOutput("Gate Opened >>");
   }
 
   GateSwitchMillisHeld = (millis() - GateSwitchFirstTime);
@@ -44,7 +44,7 @@
     Blynk.virtualWrite(vPIN_GATE_TABLE, "pick", tableIndex1 );
     tableIndex1++;
     // TERMINAL
-    printOutput(String("Gate Closed # Time: ") + formatTime(GateSwitchMillisHeld));
+    printOutput(String("Gate Closed << Time: ") + formatTime(GateSwitchMillisHeld));
   }
   GateSwitchPrev = GateSwitchCurrent;
 }
