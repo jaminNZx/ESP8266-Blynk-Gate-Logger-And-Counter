@@ -125,5 +125,11 @@ void bootUp() {
   }
 }
 /*
-
+  workDifference() -
 */
+int workDifference(int f, int t) {
+  long d = 0;
+  for (int i = f; i != t; i++) d++;
+  if (d > 0 && d < 24) return d;
+  return d + 24;
+}

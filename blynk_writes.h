@@ -66,9 +66,9 @@ BLYNK_WRITE(vPIN_NIGHTTIME) {
   nightTime = param.asInt();
   if (nightTime) {
     Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 255);
-    printOutput("Night Mode Active");
-    long nightTimeTimeout = (nightTime_offTime - hour()) * 60 * 60 * 1000; // work out the hours until set time
+    long nightTimeTimeout = workDifference(hour(), nightTime_offTime) * 60 * 60 * 1000; 
     timer4 = timer.setTimeout(nightTimeTimeout, nightTime_END); // then set a timer
+    printOutput("Night Mode Active for " + String(workDifference(hour(), nightTime_offTime)) + String(" hrs"));
   } else {
     Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 0);
     printOutput("Night Mode Inactive (Manual)");
