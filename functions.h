@@ -61,7 +61,7 @@ String formatTime(long milliSeconds) {
   hours = mins / 60; //convert minutes to hours
   secs = secs - (mins * 60); //subtract the coverted seconds to minutes in order to display 59 secs max
   mins = mins - (hours * 60); //subtract the coverted minutes to hours in order to display 59 minutes max
-  if (secs < 10) secs_o = "0";
+  if (secs < 10 && mins) secs_o = "0";
   if (mins) returned += mins + String("m ");
   returned += secs_o + secs + String("s");
   return returned;
