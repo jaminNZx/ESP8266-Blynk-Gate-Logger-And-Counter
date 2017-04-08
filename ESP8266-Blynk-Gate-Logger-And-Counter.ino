@@ -30,10 +30,34 @@ void setup() {
   /*********** TIMERS & RTC *************/
   rtc.begin();
   setSyncInterval(1);
-  timer1 = timer.setInterval(2000, sendUptime);
-  timer2 = timer.setInterval(1000, ActiveGateTimer);
+  timer1 = timer.setInterval(2000, []() {
+    Blynk.virtualWrite(vPIN_CUR_DATE,  getCurrentDate() + String("  ") + getCurrentTime() );
+    Blynk.setProperty(vPIN_CUR_DATE, "label", String("WIFI: ") + String(map(WiFi.RSSI(), -105, -40, 0, 100)) + String("% (") + WiFi.RSSI() + String("dB)") + String(" IP: ") + WiFi.localIP().toString());
+  });
+  timer2 = timer.setInterval(1000, []() {
+    Blynk.virtualWrite(vPIN_GATE_HELD, formatTime(GateSwitchMillisHeld));
+    if (GateSwitchSecsHeld > 0 && GateSwitchSecsHeld >= notifyDelay) sendNotification();
+  });
   timer.disable(timer2);
-  timer3 = timer.setInterval(1000, bootUp);
+  timer3 = timer.setInterval(1000, []() {
+    if (year() != 1970) {
+      today = day();
+      Blynk.syncVirtual(vPIN_GATE_COUNTER);
+      Blynk.syncVirtual(vPIN_BELL_COUNTER);
+      setSyncInterval(300);
+      printOutput("Sync'd RTC - Interval: 5min");
+      timer.disable(timer3);
+      timer.setInterval(15 * 60 * 1000, []() {
+        if (day() != today) {
+          GateDailyCounter = 0;
+          BellDailyCounter = 0;
+          Blynk.virtualWrite(vPIN_GATE_COUNTER, 0);
+          Blynk.virtualWrite(vPIN_BELL_COUNTER, 0);
+          today = day();
+        }
+      });
+    }
+  });
   /******** pinModes **************/
   pinMode(PIN_DOORBELL, INPUT_PULLUP);
   pinMode(PIN_GATE_SWITCH, INPUT_PULLUP);

@@ -37,20 +37,6 @@ void printOutput(String a) {
   terminal.flush();
 }
 /*
-  sendUptime() - A 1 second interval function that updates Wifi strength meter and current time widget
-*/
-void sendUptime() {
-  Blynk.virtualWrite(vPIN_CUR_DATE,  getCurrentDate() + String("  ") + getCurrentTime() );
-  Blynk.setProperty(vPIN_CUR_DATE, "label", String("WIFI: ") + String(map(WiFi.RSSI(), -105, -40, 0, 100)) + String("% (") + WiFi.RSSI() + String("dB)") + String(" IP: ") + WiFi.localIP().toString());
-}
-/*
-  resetNotification() - Reset notification flag
-*/
-void resetNotification() {
-  notificationSent = 0;
-  printOutput("Notified # Reset Flag");
-}
-/*
   formatTime() - Format millis in to MM:SS
 */
 String formatTime(long milliSeconds) {
@@ -74,56 +60,15 @@ void sendNotification() {
     Blynk.email("ben@customtabs.co.nz", "Front Gate Alert", GateLastOpened + String(" // Front Gate has been left open for ") + formatTime(GateSwitchMillisHeld));
     printOutput(String("Notified # Gate Held: ") + formatTime(GateSwitchMillisHeld));
     notificationSent = 1;
-    timer3 = timer.setTimeout(((notifyDelay * 1000) - 1000), resetNotification);
+    timer3 = timer.setTimeout(((notifyDelay * 1000) - 1000), []() {
+      notificationSent = 0;
+      printOutput("Notified # Reset Flag");
+    });
     //Blynk.sms("Alert! " + GateLastOpened + String(" // Front Gate has been left open for ") + formatTime(GateSwitchMillisHeld);
     //Blynk.notify("NOTIFY: Alert, Front Gate has been left open!");
   }
 }
-/*
-  ActiveGateTimer() - callback: runs while gate is open and reports the open time to the widget
-*/
-void ActiveGateTimer() {
-  Blynk.virtualWrite(vPIN_GATE_HELD, formatTime(GateSwitchMillisHeld));
-  if (GateSwitchSecsHeld > 0 && GateSwitchSecsHeld >= notifyDelay) sendNotification();
-}
-/*
-  nightTime_END() - callback: resets nightTime mode after 10 hrs
-*/
-void nightTime_END() {
-  nightTime = 0;
-  Blynk.virtualWrite(vPIN_NIGHTTIME_LED, 0);
-  printOutput("Night Mode Inactive");
-}
-/*
-  resetDayCounters() - Reset daily counters
-*/
-void resetDayCounters() {
-  if (day() != today) {
-    GateDailyCounter = 0;
-    BellDailyCounter = 0;
-    Blynk.virtualWrite(vPIN_GATE_COUNTER, 0);
-    Blynk.virtualWrite(vPIN_BELL_COUNTER, 0);
-    today = day();
-  }
-}
-/*
-  bootUp() - A busy little run once boot function to:
-    - sync time quickly
-    - set the correct 'today' var 
-    - sync the counters from the widget data
-    - start the daily reset timer
-*/
-void bootUp() {
-  if (year() != 1970) {
-    today = day();
-    Blynk.syncVirtual(vPIN_GATE_COUNTER);
-    Blynk.syncVirtual(vPIN_BELL_COUNTER);
-    setSyncInterval(300);
-    printOutput("Sync'd RTC - Interval: 5min");
-    timer.disable(timer3);
-    timer.setInterval(15 * 60 * 1000, resetDayCounters);
-  }
-}
+
 /*
   workDifference() -
 */
