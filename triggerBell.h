@@ -3,7 +3,7 @@
                      Door Bell Function
 
  **************************************************************/
- void triggerBell() {
+void triggerBell() {
   DoorBellButtonCur = digitalRead(PIN_DOORBELL);
   if (DoorBellButtonCur == LOW && DoorBellButtonPrev == HIGH) {
     // BELL PRESSED
@@ -17,7 +17,7 @@
       leds.virtualWrite(V13, 2);
     }
     if (nightTime) front_lights.virtualWrite(V0, 1);
-    
+
     // LOG WHEN
     BellLastPressed = getCurrentDate() + String("   ") + getCurrentTime();
     Blynk.virtualWrite(vPIN_BELL_LAST, BellLastPressed);
