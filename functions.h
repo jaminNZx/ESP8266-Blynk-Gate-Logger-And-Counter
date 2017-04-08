@@ -42,11 +42,11 @@ void printOutput(String a) {
 String formatTime(long milliSeconds) {
   long hours = 0, mins = 0, secs = 0;
   String returned, secs_o, mins_o;
-  secs = milliSeconds / 1000; //convert milliseconds to secs
-  mins = secs / 60; //convert seconds to minutes
-  hours = mins / 60; //convert minutes to hours
-  secs = secs - (mins * 60); //subtract the coverted seconds to minutes in order to display 59 secs max
-  mins = mins - (hours * 60); //subtract the coverted minutes to hours in order to display 59 minutes max
+  secs = milliSeconds / 1000;
+  mins = secs / 60; 
+  hours = mins / 60; 
+  secs = secs - (mins * 60); 
+  mins = mins - (hours * 60); 
   if (secs < 10 && mins) secs_o = "0";
   if (mins) returned += mins + String("m ");
   returned += secs_o + secs + String("s");

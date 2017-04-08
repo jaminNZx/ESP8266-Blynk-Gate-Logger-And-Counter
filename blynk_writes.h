@@ -30,11 +30,7 @@ BLYNK_WRITE(vPIN_BELL_TABLE_CLR) {
 
 BLYNK_WRITE(vPIN_NOTIFY_DELAY) {
   notifyDelay = param.asInt() * 60;
-  if (notifyDelay) {
-    printOutput(String("Notify Delay: ") + String(param.asInt()) + String(" min"));
-  } else {
-    printOutput(String("Notify Disabled "));
-  }
+  (notifyDelay) ? printOutput(String("Notify Delay: ") + String(param.asInt()) + String(" min")) : printOutput(String("Notify Disabled "));
 }
 
 BLYNK_WRITE(vPIN_SILENTMODE) {
