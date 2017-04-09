@@ -7,9 +7,7 @@
   getCurrentTime() - returns the current time as String 11:59:59
 */
 String getCurrentTime() {
-  String extraZeroH = "";
-  String extraZeroM = "";
-  String extraZeroS = "";
+  String extraZeroH, extraZeroM, extraZeroS;
   if (hour() < 10) extraZeroH = '0';
   if (minute() < 10) extraZeroM = '0';
   if (second() < 10) extraZeroS = '0';
@@ -68,7 +66,6 @@ void sendNotification() {
     //Blynk.notify("NOTIFY: Alert, Front Gate has been left open!");
   }
 }
-
 /*
   workDifference() -
 */
@@ -78,3 +75,6 @@ int workDifference(int f, int t) {
   if (d > 0 && d < 24) return d;
   return d + 24;
 }
+/*
+ 
+*/
