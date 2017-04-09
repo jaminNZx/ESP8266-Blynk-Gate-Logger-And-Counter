@@ -12,8 +12,9 @@
     // LOG WHEN
     GateLastOpened = getCurrentDate() + String("   ") + getCurrentTime();
     Blynk.virtualWrite(vPIN_GATE_LAST, GateLastOpened);
-    // INDICATOR LED
-    digitalWrite(PIN_LED, HIGH);
+    // INDICATOR COLOUR
+    Blynk.setProperty(vPIN_GATE_HELD, "color", "#23C48E");
+    
     if (!silentGate) {
       // SEND ALERT TO BASE STATIONS & SMART LED INTERNAL SYSTEM & FRONT LIGHTS
       base.virtualWrite(V1, HIGH);
@@ -34,8 +35,8 @@
   GateSwitchSecsHeld = GateSwitchMillisHeld / 1000;
 
   if (GateSwitchCurrent == LOW && GateSwitchPrev == HIGH) {
-    // INDICATOR LED
-    digitalWrite(PIN_LED, LOW);
+    // INDICATOR COLOUR
+    Blynk.setProperty(vPIN_GATE_HELD, "color", "#ED9D00");
     // STOP ACTIVE GATE TIMER
     timer.disable(timer2);
     notificationSent = 0;
