@@ -3,7 +3,7 @@
                             Globals
 
  **************************************************************/
- WidgetTerminal terminal(vPIN_TERMINAL);
+WidgetTerminal terminal(vPIN_TERMINAL);
 WidgetBridge base(vPIN_BRIDGE_BASE);
 WidgetBridge leds(vPIN_BRIDGE_LED);
 WidgetBridge front_lights(vPIN_BRIDGE_FRONT_LIGHTS);
