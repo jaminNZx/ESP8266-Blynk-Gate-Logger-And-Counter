@@ -25,11 +25,19 @@
 */
 #define LOCAL_SERVER                IPAddress(192, 168, 1, 2)
 /*
+   Modules
+*/
+#define GATELOGGER
+#define DOORBELL
+/*
    Hardware Pins
 */
+#ifdef DOORBELL
 #define PIN_DOORBELL                12 
+#endif
+#ifdef GATELOGGER
 #define PIN_GATE_SWITCH             13
-#define PIN_LED                     14 
+#endif
 /*
    Virtual Pins
 */

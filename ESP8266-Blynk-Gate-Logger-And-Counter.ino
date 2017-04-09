@@ -11,8 +11,12 @@
 #include "settings.h"
 #include "globals.h"
 #include "functions.h"
+#ifdef DOORBELL
 #include "triggerBell.h"
+#endif
+#ifdef GATELOGGER
 #include "triggerGate.h"
+#endif
 #include "blynk_writes.h"
 
 void setup() {
@@ -61,7 +65,6 @@ void setup() {
   /******** pinModes **************/
   pinMode(PIN_DOORBELL, INPUT_PULLUP);
   pinMode(PIN_GATE_SWITCH, INPUT_PULLUP);
-  pinMode(PIN_LED, OUTPUT);
   /******** READY **************/
   printOutput(String("Blynk v" BLYNK_VERSION ": Device started"));
   /******** SYNC **************/
@@ -74,7 +77,11 @@ void loop() {
   Blynk.run();
   ArduinoOTA.handle();
   timer.run();
+#ifdef DOORBELL
   triggerBell();
+#endif
+#ifdef GATELOGGER
   triggerGate();
+#endif
 }
 /**************************************************************************************************************************/
