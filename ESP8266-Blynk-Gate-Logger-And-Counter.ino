@@ -4,7 +4,6 @@
 #include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
-#include <SimpleTimer.h>
 #include <TimeLib.h>
 #include <WidgetRTC.h>
 
@@ -34,7 +33,7 @@ void setup() {
   /*********** TIMERS & RTC *************/
   rtc.begin();
   setSyncInterval(1);
-  timer1 = timer.setInterval(2000, []() {
+  timer1 = timer.setInterval(2000, []() { 
     Blynk.virtualWrite(vPIN_CUR_DATE,  getCurrentDate() + String("  ") + getCurrentTime() );
     Blynk.setProperty(vPIN_CUR_DATE, "label", String("WIFI: ") + String(map(WiFi.RSSI(), -105, -40, 0, 100)) + String("% (") + WiFi.RSSI() + String("dB)") + String(" IP: ") + WiFi.localIP().toString());
   });

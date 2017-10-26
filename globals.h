@@ -8,7 +8,7 @@ WidgetBridge base(vPIN_BRIDGE_BASE);
 WidgetBridge leds(vPIN_BRIDGE_LED);
 WidgetBridge front_lights(vPIN_BRIDGE_FRONT_LIGHTS);
 WidgetRTC rtc;
-SimpleTimer timer;
+BlynkTimer timer;
 
 int           DoorBellButtonCur, GateSwitchCurrent, notificationSent;
 byte          DoorBellButtonPrev = HIGH;
